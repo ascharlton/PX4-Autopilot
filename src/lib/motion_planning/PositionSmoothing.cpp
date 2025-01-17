@@ -113,16 +113,17 @@ float PositionSmoothing::_getMaxZSpeed(const Vector3f(&waypoints)[3]) const
 	const Vector3f &target = waypoints[1];
 	const Vector3f &next_target = waypoints[2];
 
-	const Vector2f start_position_xy_z = {start_position.xy().norm(), start_position(2)};
-	const Vector2f target_xy_z = {target.xy().norm(), target(2)};
-	const Vector2f next_target_xy_z = {next_target.xy().norm(), next_target(2)};
+	const Vector3f target_to_start = start_position - target;
+	const Vector2f target_to_start_xy_z(target_to_start.xy().norm(), target_to_start(2));
+
+	const Vector3f target_to_next = target - next_target;
+	const Vector2f target_to_next_xy_z(target_to_next.xy().norm(), target_to_next(2));
 
 	float arrival_z_speed = 0.0f;
 	const bool target_next_different = fabsf(target(2) - next_target(2)) > 0.001f;
 
 	if (target_next_different) {
-		const float alpha = acosf(Vector2f((target_xy_z - start_position_xy_z)).unit_or_zero().dot(
-						  Vector2f((target_xy_z - next_target_xy_z)).unit_or_zero()));
+		const float alpha = acosf(target_to_start_xy_z.unit_or_zero().dot(target_to_next_xy_z.unit_or_zero()));
 
 		const float safe_alpha = math::constrain(alpha, 0.f, M_PI_F - FLT_EPSILON);
 		float accel_tmp = _trajectory[2].getMaxAccel();
